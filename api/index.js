@@ -1,5 +1,7 @@
 import express from 'express';
-import mongoose from 'mongoose';
+import mongoose, { get } from 'mongoose';
+import bodyParser from 'body-parser';
+import userRoutes from './routes/user.route.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -14,7 +16,7 @@ mongoose.connect(process.env.MONGO_URL)
   });
 
 
-import bodyParser from 'body-parser';
+
 const app = express();
 const port = 3000;
 
@@ -24,3 +26,5 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+app.use('/api/users', userRoutes);
