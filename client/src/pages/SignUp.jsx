@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -9,25 +9,59 @@ export default function SignUp() {
     password: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
+    setMessage("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (!formData.username || !formData.email || !formData.password) {
-      alert("Please fill in all fields.");
+    const { username, email, password } = formData;
+
+    if (!username || !email || !password) {
+      setMessage("❌ Please fill in all fields.");
+      setLoading(false);
       return;
     }
 
-    if (formData.password.length < 6) {
-      alert("Password must be at least 6 characters.");
+    if (password.length < 6) {
+      setMessage("❌ Password must be at least 6 characters.");
+      setLoading(false);
       return;
     }
 
-    console.log("Form submitted:", formData);
-    // You can now send formData to your backend
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setMessage("✅ Account created successfully!");
+        setFormData({ username: "", email: "", password: "" });
+
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 1500); // Redirect after 1.5 seconds
+      } else {
+        setMessage(result.message || "❌ Something went wrong.");
+      }
+    } catch (error) {
+      setMessage("❌ Failed to connect to server.");
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -37,9 +71,7 @@ export default function SignUp() {
           Sign Up
         </h1>
 
-        {/* Form */}
         <form className="space-y-5" onSubmit={handleSubmit}>
-          {/* Username */}
           <div className="relative">
             <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
             <input
@@ -52,7 +84,6 @@ export default function SignUp() {
             />
           </div>
 
-          {/* Email */}
           <div className="relative">
             <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
             <input
@@ -65,29 +96,36 @@ export default function SignUp() {
             />
           </div>
 
-          {/* Password */}
           <div className="relative">
             <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               value={formData.password}
               onChange={handleChange}
               placeholder="Password"
-              className="w-full pl-10 pr-4 py-2 border-2 border-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+              className="w-full pl-10 pr-10 py-2 border-2 border-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
             />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 cursor-pointer"
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-green-400 to-red-400 text-white py-2 rounded-lg font-semibold shadow-md hover:opacity-90 transition duration-300"
+            disabled={loading}
+            className={`w-full bg-gradient-to-r from-green-400 to-red-400 text-white py-2 rounded-lg font-semibold shadow-md transition duration-300 ${
+              loading ? "opacity-60 cursor-not-allowed" : "hover:opacity-90"
+            }`}
           >
-            Sign Up
+            {loading ? "Processing..." : "Sign Up"}
           </button>
         </form>
 
-        {/* Sign In Redirect */}
         <div className="text-center text-sm text-slate-600">
           Already have an account?{" "}
           <Link
@@ -97,10 +135,20 @@ export default function SignUp() {
             Sign In
           </Link>
         </div>
-      </div>
-      
 
-      {/* Fade-in Animation */}
+        {message && (
+          <div
+            className={`text-center text-sm mt-2 px-4 py-2 rounded-md font-medium transition ${
+              message.startsWith("✅")
+                ? "text-green-700 bg-green-100 border border-green-300"
+                : "text-red-600 bg-red-100 border border-red-300"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+      </div>
+
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }

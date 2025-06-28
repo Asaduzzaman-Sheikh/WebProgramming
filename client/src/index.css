@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 body {
-  @apply bg-[rgb(241,245,249)] text-slate-800 antialiased min-h-screen;
+  @apply bg-[rgb(241,245,249)];
 }
