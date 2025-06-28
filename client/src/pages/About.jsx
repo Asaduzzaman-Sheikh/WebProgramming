@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 export default function About() {
   return (
@@ -6,6 +6,5 @@ export default function About() {
       <h1>About Us</h1>
       <p>We are a company that values excellence and innovation.</p>
     </div>
-  )
+  );
 }
-

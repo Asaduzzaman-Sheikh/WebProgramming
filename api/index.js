@@ -1,5 +1,6 @@
 import express from 'express';
 import mongoose, { get } from 'mongoose';
+import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
@@ -21,6 +22,7 @@ mongoose.connect(process.env.MONGO_URL)
 const app = express();
 const port = 3000;
 
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -30,6 +32,7 @@ app.listen(port, () => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
