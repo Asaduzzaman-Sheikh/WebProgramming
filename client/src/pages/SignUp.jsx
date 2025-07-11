@@ -20,6 +20,23 @@ export default function SignUp() {
     setMessage("");
   };
 
+  const validatePassword = (password) => {
+    const errors = [];
+    if (password.length < 8) {
+      errors.push("be at least 8 characters long");
+    }
+    if (!/[A-Za-z]/.test(password)) {
+      errors.push("contain at least one letter");
+    }
+    if (!/\d/.test(password)) {
+      errors.push("contain at least one number");
+    }
+    if (!/[@$!%*?&]/.test(password)) {
+      errors.push("contain at least one special character (@$!%*?&)");
+    }
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -32,11 +49,20 @@ export default function SignUp() {
       return;
     }
 
-    if (password.length < 6) {
-      setMessage("❌ Password must be at least 6 characters.");
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors.length > 0) {
+      // Construct a grammatically correct error message
+      let errorMessage = "❌ Password must ";
+      if (passwordErrors.length === 1) {
+        errorMessage += passwordErrors[0];
+      } else {
+        errorMessage += passwordErrors.slice(0, -1).join(", ") + " and " + passwordErrors.slice(-1);
+      }
+      setMessage(errorMessage + ".");
       setLoading(false);
       return;
     }
+
 
     try {
       const response = await fetch("/api/auth/signup", {
