@@ -25,14 +25,9 @@ export default function SignIn() {
 
     const { email, password } = formData;
 
+    // Only check if fields are empty. The backend will verify the password.
     if (!email || !password) {
       setMessage("❌ Please fill in all fields.");
-      setLoading(false);
-      return;
-    }
-
-    if (password.length < 6) {
-      setMessage("❌ Password must be at least 6 characters.");
       setLoading(false);
       return;
     }
