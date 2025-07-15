@@ -31,50 +31,57 @@ const JWT_SECRET = process.env.JWT_SECRET || '4f8d9e72a17b4c1db6e9f3a2847e2c5f9d
 const JWT_EXPIRES_IN = '7d';
 
 export const signin = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
+  try {
+    // --- 1. Read 'rememberMe' from the request body ---
+    const { email, password, rememberMe } = req.body;
 
-    if (!email || !password) {
-      throw errorHandler(400, 'Email and password are required.');
-    }
+    if (!email || !password) {
+      throw errorHandler(400, 'Email and password are required.');
+    }
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      throw errorHandler(401, 'Invalid email or password.');
-    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw errorHandler(401, 'Invalid email or password.');
+    }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      throw errorHandler(401, 'Invalid email or password.');
-    }
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      throw errorHandler(401, 'Invalid email or password.');
+    }
 
-    // ✅ Create token
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
+    // --- 2. Set dynamic expiration times ---
+    const tokenExpiresIn = rememberMe ? '30d' : '7d'; // For the JWT
+    const cookieExpiresIn = rememberMe 
+      ? 30 * 24 * 60 * 60 * 1000  // 30 days in milliseconds for the cookie
+      : 7 * 24 * 60 * 60 * 1000;   // 7 days (default)
 
-    const userData = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-    };
+    // ✅ Create token with the dynamic expiration
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: tokenExpiresIn }
+    );
 
-    // ✅ Set HttpOnly cookie
-    res
-      .cookie('access_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // true if in production with HTTPS
-        sameSite: 'Strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      })
-      .status(200)
-      .json({
-        message: 'Signin successful',
-        user: userData,
-      });
-  } catch (error) {
-    next(error);
-  }
+    const userData = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+    };
+
+    // ✅ Set HttpOnly cookie with the dynamic expiration
+    res
+      .cookie('access_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: cookieExpiresIn, // --- 3. Use the new dynamic value ---
+      })
+      .status(200)
+      .json({
+        message: 'Signin successful',
+        user: userData,
+      });
+  } catch (error) {
+    next(error);
+  }
 };

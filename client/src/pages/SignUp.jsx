@@ -7,17 +7,41 @@ export default function SignUp() {
     username: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
+  // --- NEW: State to hold errors for specific fields ---
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+    const { id, value } = e.target;
+    setFormData({ ...formData, [id]: value });
     setMessage("");
+    // Clear the specific error when user starts typing again
+    if (errors[id]) {
+      setErrors({ ...errors, [id]: "" });
+    }
+  };
+
+  // --- NEW: Function to validate input when user clicks away ---
+  const handleBlur = (e) => {
+    const { id, value } = e.target;
+    if (id === 'email' && value && !validateEmail(value)) {
+      setErrors({ ...errors, email: 'Please enter a valid email format.' });
+    } else if (id === 'confirmPassword' && value && value !== formData.password) {
+      setErrors({ ...errors, confirmPassword: 'Passwords do not match.' });
+    }
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
   const validatePassword = (password) => {
@@ -41,52 +65,65 @@ export default function SignUp() {
     e.preventDefault();
     setLoading(true);
 
-    const { username, email, password } = formData;
+    const { username, email, password, confirmPassword } = formData;
 
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !confirmPassword) {
       setMessage("❌ Please fill in all fields.");
+      setLoading(false);
+      return;
+    }
+    // Final check on submit
+    if (!validateEmail(email)) {
+      setErrors({ ...errors, email: 'Please enter a valid email format.' });
+      setLoading(false);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrors({ ...errors, confirmPassword: 'Passwords do not match.' });
       setLoading(false);
       return;
     }
 
     const passwordErrors = validatePassword(password);
     if (passwordErrors.length > 0) {
-      // Construct a grammatically correct error message
       let errorMessage = "❌ Password must ";
       if (passwordErrors.length === 1) {
         errorMessage += passwordErrors[0];
       } else {
-        errorMessage += passwordErrors.slice(0, -1).join(", ") + " and " + passwordErrors.slice(-1);
+        errorMessage +=
+          passwordErrors.slice(0, -1).join(", ") +
+          " and " +
+          passwordErrors.slice(-1);
       }
       setMessage(errorMessage + ".");
       setLoading(false);
       return;
     }
 
-
     try {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ username, email, password }),
       });
-
       const result = await response.json();
-
       if (response.ok) {
         setMessage("✅ Account created successfully!");
-        setFormData({ username: "", email: "", password: "" });
-
+        setFormData({
+          username: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
         setTimeout(() => {
           navigate("/sign-in");
-        }, 1500); // Redirect after 1.5 seconds
+        }, 1500);
       } else {
         setMessage(result.message || "❌ Something went wrong.");
       }
     } catch (error) {
       setMessage("❌ Failed to connect to server.");
     }
-
     setLoading(false);
   };
 
@@ -94,10 +131,11 @@ export default function SignUp() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl space-y-6 animate-fadeIn">
         <h1 className="text-3xl font-bold text-center text-slate-700">
-          Sign Up
+          Create Account
         </h1>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
+          {/* Username Input */}
           <div className="relative">
             <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
             <input
@@ -110,18 +148,24 @@ export default function SignUp() {
             />
           </div>
 
-          <div className="relative">
-            <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-            <input
-              type="email"
-              id="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Email"
-              className="w-full pl-10 pr-4 py-2 border-2 border-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
-            />
+          {/* --- UPDATED: Email Input with real-time validation --- */}
+          <div>
+            <div className="relative">
+              <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+              <input
+                type="email"
+                id="email"
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={handleBlur} // New event handler
+                placeholder="Email"
+                className={`w-full pl-10 pr-4 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-slate-400'}`}
+              />
+            </div>
+            {errors.email && <p className="text-red-600 text-xs mt-1 ml-1">{errors.email}</p>}
           </div>
 
+          {/* Password Input */}
           <div className="relative">
             <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
             <input
@@ -139,6 +183,30 @@ export default function SignUp() {
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
+          </div>
+          
+          {/* Confirm Password Input */}
+          <div>
+            <div className="relative">
+              <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                onBlur={handleBlur} // Also checks if passwords match on blur
+                placeholder="Confirm Password"
+                className={`w-full pl-10 pr-10 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent ${errors.confirmPassword ? 'border-red-500' : 'border-slate-400'}`}
+              />
+              <span
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 cursor-pointer"
+                title={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
+            {errors.confirmPassword && <p className="text-red-600 text-xs mt-1 ml-1">{errors.confirmPassword}</p>}
           </div>
 
           <button
