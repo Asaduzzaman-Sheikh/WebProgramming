@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import OAuth from "../components/OAuth";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -218,6 +219,7 @@ export default function SignUp() {
           >
             {loading ? "Processing..." : "Sign Up"}
           </button>
+          <OAuth />
         </form>
 
         <div className="text-center text-sm text-slate-600">

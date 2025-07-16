@@ -4,6 +4,8 @@ import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 // --- 1. Import Redux hooks and actions ---
 import { useDispatch, useSelector } from 'react-redux';
 import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice'; 
+import OAuth from "../components/OAuth";
+
 
 export default function SignIn() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -101,6 +103,7 @@ export default function SignIn() {
           <button type="submit" disabled={loading} className={`w-full bg-gradient-to-r from-indigo-600 to-indigo-800 text-white py-2 rounded-lg font-semibold shadow-md transition duration-300 ${ loading ? "opacity-60 cursor-not-allowed" : "hover:opacity-90" }`}>
             {loading ? "Signing in..." : "Sign In"}
           </button>
+          <OAuth />
         </form>
 
         <div className="text-center text-sm text-slate-600">
