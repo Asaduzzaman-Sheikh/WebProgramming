@@ -1,14 +1,14 @@
-import jwt from 'jsonwebtoken';
-import User from '../models/user.model.js';
-import bcrypt from 'bcrypt';
-import { errorHandler } from '../utils/error.js';
+import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
+import bcrypt from "bcrypt";
+import { errorHandler } from "../utils/error.js";
 
 export const signup = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
-      const error = new Error('All fields are required.');
+      const error = new Error("All fields are required.");
       error.status = 400;
       throw error;
     }
@@ -19,69 +19,105 @@ export const signup = async (req, res, next) => {
 
     await newUser.save();
 
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    next(error); // Pass error to middleware
+    next(error);
   }
 };
 
-
-
-const JWT_SECRET = process.env.JWT_SECRET || '4f8d9e72a17b4c1db6e9f3a2847e2c5f9d8a4b1c0e6f7a2d9b4c8e1f0a3d5b7c';
-const JWT_EXPIRES_IN = '7d';
+const JWT_SECRET = process.env.JWT_SECRET || "your-default-jwt-secret";
 
 export const signin = async (req, res, next) => {
-  try {
-    // --- 1. Read 'rememberMe' from the request body ---
-    const { email, password, rememberMe } = req.body;
+  try {
+    const { email, password, rememberMe } = req.body;
 
-    if (!email || !password) {
-      throw errorHandler(400, 'Email and password are required.');
-    }
+    if (!email || !password) {
+      throw errorHandler(400, "Email and password are required.");
+    }
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      throw errorHandler(401, 'Invalid email or password.');
-    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw errorHandler(401, "Invalid email or password.");
+    }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      throw errorHandler(401, 'Invalid email or password.');
-    }
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      throw errorHandler(401, "Invalid email or password.");
+    }
 
-    // --- 2. Set dynamic expiration times ---
-    const tokenExpiresIn = rememberMe ? '30d' : '7d'; // For the JWT
-    const cookieExpiresIn = rememberMe 
-      ? 30 * 24 * 60 * 60 * 1000  // 30 days in milliseconds for the cookie
-      : 7 * 24 * 60 * 60 * 1000;   // 7 days (default)
+    const tokenExpiresIn = rememberMe ? "30d" : "7d";
+    const cookieExpiresIn = rememberMe
+      ? 30 * 24 * 60 * 60 * 1000
+      : 7 * 24 * 60 * 60 * 1000;
 
-    // ✅ Create token with the dynamic expiration
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: tokenExpiresIn }
-    );
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, {
+      expiresIn: tokenExpiresIn,
+    });
 
-    const userData = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-    };
+    const { password: pass, ...rest } = user._doc;
 
-    // ✅ Set HttpOnly cookie with the dynamic expiration
-    res
-      .cookie('access_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict',
-        maxAge: cookieExpiresIn, // --- 3. Use the new dynamic value ---
-      })
-      .status(200)
-      .json({
-        message: 'Signin successful',
-        user: userData,
-      });
-  } catch (error) {
-    next(error);
-  }
+    res
+      .cookie("access_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict",
+        maxAge: cookieExpiresIn,
+      })
+      .status(200)
+      .json(rest);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const googleOAuth = async (req, res, next) => {
+  // console.log('BACKEND check, received request body:', req.body);
+
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (user) {
+      // User exists, generate token and set cookie
+      const token = jwt.sign({ id: user._id }, JWT_SECRET);
+      const { password: pass, ...rest } = user._doc;
+      return res
+        .cookie("access_token", token, {
+          httpOnly: true,
+        })
+        .status(200)
+        .json(rest);
+    }
+
+    // User doesn't exist: generate password and username
+    const generatePassword =
+      Math.random().toString(36).slice(-8) +
+      Math.random().toString(36).slice(-8);
+
+    const hashedPassword = await bcrypt.hash(generatePassword, 10);
+
+    const newUser = new User({
+      username:
+        req.body.name.split(" ").join("").toLowerCase() +
+        Math.random().toString(36).slice(-4),
+
+      email: req.body.email,
+      password: hashedPassword,
+
+      profilePicture: req.body.photoUrl,
+    });
+
+    await newUser.save();
+
+    // Generate token for the new user
+    const token = jwt.sign({ id: newUser._id }, JWT_SECRET);
+    const { password: pass, ...rest } = newUser._doc;
+    return res
+      .cookie("access_token", token, {
+        httpOnly: true,
+      })
+      .status(201)
+      .json(rest);
+  } catch (error) {
+    next(error);
+  }
 };

@@ -1,8 +1,10 @@
 import { FaSearch } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import React from "react";
+import { useSelector } from "react-redux";
 
 export default function Header() {
+  const { currentUser } = useSelector((state) => state.user);
+
   return (
     <header className="bg-slate-200 shadow-md fixed top-0 left-0 w-full z-50">
       <div className="container max-w-6xl mx-auto px-4 py-2 flex flex-row items-center justify-between gap-4 flex-wrap">
@@ -25,7 +27,6 @@ export default function Header() {
               placeholder="Search..."
               className="w-full rounded-full py-2 pl-4 pr-10 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:shadow-md transition"
             />
-
             <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 cursor-pointer hover:text-slate-700" />
           </div>
         </form>
@@ -41,12 +42,22 @@ export default function Header() {
           <Link to="/about" className="text-slate-700 relative cursor-pointer">
             <span className="nav-link">About</span>
           </Link>
-          <Link
-            to="/sign-in"
-            className="text-slate-700 relative cursor-pointer"
-          >
-            <span className="nav-link">Sign In</span>
-          </Link>
+
+          {currentUser ? (
+            // If user IS signed in, link to their profile
+            <Link to="/profile">
+              <img
+                src={currentUser.profilePicture}
+                alt="Profile"
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            </Link>
+          ) : (
+            // If user is NOT signed in, link to the sign-in page
+            <Link to="/sign-in" className="text-slate-700 relative cursor-pointer">
+              <span className="nav-link">Sign In</span>
+            </Link>
+          )}
         </nav>
       </div>
 
