@@ -6,11 +6,11 @@ import { initializeApp } from "firebase/app";
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: "safehouse-13f78.firebaseapp.com",
-  projectId: "safehouse-13f78",
-  storageBucket: "safehouse-13f78.firebasestorage.app",
-  messagingSenderId: "934306318069",
-  appId: "1:934306318069:web:b27aad0d337180239ee7bc"
+  authDomain: "safehouse-dbf67.firebaseapp.com",
+  projectId: "safehouse-dbf67",
+  storageBucket: "safehouse-dbf67.firebasestorage.app",
+  messagingSenderId: "968557171028",
+  appId: "1:968557171028:web:31e5ee153de9cb0fcb78c1"
 };
 
 // Initialize Firebase

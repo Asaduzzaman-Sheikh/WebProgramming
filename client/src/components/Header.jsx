@@ -43,21 +43,9 @@ export default function Header() {
             <span className="nav-link">About</span>
           </Link>
 
-          {currentUser ? (
-            // If user IS signed in, link to their profile
-            <Link to="/profile">
-              <img
-                src={currentUser.profilePicture}
-                alt="Profile"
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            </Link>
-          ) : (
-            // If user is NOT signed in, link to the sign-in page
-            <Link to="/sign-in" className="text-slate-700 relative cursor-pointer">
-              <span className="nav-link">Sign In</span>
-            </Link>
-          )}
+          <Link to="/sign-in" className="text-slate-700 relative cursor-pointer">
+            <span className="nav-link">Sign In</span>
+          </Link>
         </nav>
       </div>
 
