@@ -43,22 +43,19 @@ export default function Header() {
             <span className="nav-link">About</span>
           </Link>
 
-          {currentUser ? (
-            <Link to="/profile">
+          <Link
+            to="/profile"
+          >
+            {currentUser ? (
               <img
-                src={currentUser.image}
+                src={currentUser.avatar}
                 alt="Profile"
                 className="rounded-full h-8 w-8 object-cover border-2 border-slate-400 hover:border-slate-500 transition"
               />
-            </Link>
-          ) : (
-            <Link
-              to="/sign-in"
-              className="text-slate-700 relative cursor-pointer"
-            >
+            ) : (
               <span className="nav-link">Sign In</span>
-            </Link>
-          )}
+            )}
+          </Link>
         </nav>
       </div>
 

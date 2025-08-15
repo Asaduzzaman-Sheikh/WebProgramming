@@ -11,8 +11,9 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
+    "browser-image-compression": "^2.0.2",
     "firebase": "^11.10.0",
-    "framer-motion": "^12.23.5",
+    "framer-motion": "^12.23.9",
     "nodemon": "^3.1.10",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
