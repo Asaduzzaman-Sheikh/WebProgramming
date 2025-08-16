@@ -43,9 +43,16 @@ export default function Header() {
             <span className="nav-link">About</span>
           </Link>
 
+          {/* --- "List Your Property" button with animated rotating border --- */}
           <Link
-            to="/profile"
+            to={currentUser ? "/create-listing" : "/sign-in"}
+            className="text-slate-700 px-4 py-2 rounded-lg font-semibold transition-colors duration-300 shadow-sm text-sm cta-button"
           >
+            {/* This span is necessary to keep the text above the animation layers */}
+            <span className="relative z-10">List Your Property</span>
+          </Link>
+
+          <Link to="/profile">
             {currentUser ? (
               <img
                 src={currentUser.avatar}
@@ -59,7 +66,7 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* Smooth underline animation */}
+      {/* Smooth underline and button gradient animation */}
       <style>{`
         .nav-link {
           position: relative;
@@ -72,11 +79,58 @@ export default function Header() {
           bottom: 0;
           width: 0%;
           height: 2px;
-          background: linear-gradient(to right, #34d399, #f87171); /* green to red */
+          background: linear-gradient(to right, #3b82f6, #60a5fa); /* blue-600 to blue-400 */
           transition: width 0.3s ease-in-out;
         }
         .nav-link:hover::after {
           width: 100%;
+        }
+
+        /* --- New animation for the CTA button's rotating border --- */
+        .cta-button {
+          position: relative;
+          overflow: hidden;
+          background-color: #ffffff; /* white */
+        }
+        .cta-button:hover {
+          background-color: #f3f4f6; /* gray-100 */
+        }
+
+        /* The rotating gradient layer */
+        .cta-button::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 200%;
+          aspect-ratio: 1 / 1;
+          transform: translate(-50%, -50%);
+          background: conic-gradient(
+            #a855f7, /* purple-500 */
+            #60a5fa, /* blue-400 */
+            transparent 40%,
+            transparent 100%
+          );
+          animation: rotate-border 2.5s linear infinite;
+        }
+
+        /* The inner mask that creates the border effect */
+        .cta-button::after {
+          content: '';
+          position: absolute;
+          z-index: 0;
+          inset: 2px; /* Border thickness */
+          background: inherit; /* Inherits the button's background */
+          border-radius: 6px; /* slightly less than parent's rounded-lg */
+        }
+
+        @keyframes rotate-border {
+          0% {
+            transform: translate(-50%, -50%) rotate(0deg);
+          }
+          100% {
+            transform: translate(-50%, -50%) rotate(360deg);
+          }
         }
       `}</style>
     </header>

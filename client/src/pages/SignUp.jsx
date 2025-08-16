@@ -11,7 +11,6 @@ export default function SignUp() {
     confirmPassword: "",
   });
 
-  // --- NEW: State to hold errors for specific fields ---
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -24,13 +23,11 @@ export default function SignUp() {
     const { id, value } = e.target;
     setFormData({ ...formData, [id]: value });
     setMessage("");
-    // Clear the specific error when user starts typing again
     if (errors[id]) {
       setErrors({ ...errors, [id]: "" });
     }
   };
 
-  // --- NEW: Function to validate input when user clicks away ---
   const handleBlur = (e) => {
     const { id, value } = e.target;
     if (id === 'email' && value && !validateEmail(value)) {
@@ -45,13 +42,17 @@ export default function SignUp() {
     return emailRegex.test(email);
   };
 
+  // --- UPDATED: Password validation logic ---
   const validatePassword = (password) => {
     const errors = [];
     if (password.length < 8) {
       errors.push("be at least 8 characters long");
     }
-    if (!/[A-Za-z]/.test(password)) {
-      errors.push("contain at least one letter");
+    if (!/[A-Z]/.test(password)) { // Checks for an uppercase letter
+      errors.push("contain at least one uppercase letter");
+    }
+    if (!/[a-z]/.test(password)) { // Checks for a lowercase letter
+      errors.push("contain at least one lowercase letter");
     }
     if (!/\d/.test(password)) {
       errors.push("contain at least one number");
@@ -73,7 +74,6 @@ export default function SignUp() {
       setLoading(false);
       return;
     }
-    // Final check on submit
     if (!validateEmail(email)) {
       setErrors({ ...errors, email: 'Please enter a valid email format.' });
       setLoading(false);
@@ -149,7 +149,7 @@ export default function SignUp() {
             />
           </div>
 
-          {/* --- UPDATED: Email Input with real-time validation --- */}
+          {/* Email Input */}
           <div>
             <div className="relative">
               <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
@@ -158,7 +158,7 @@ export default function SignUp() {
                 id="email"
                 value={formData.email}
                 onChange={handleChange}
-                onBlur={handleBlur} // New event handler
+                onBlur={handleBlur}
                 placeholder="Email"
                 className={`w-full pl-10 pr-4 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-slate-400'}`}
               />
@@ -195,7 +195,7 @@ export default function SignUp() {
                 id="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                onBlur={handleBlur} // Also checks if passwords match on blur
+                onBlur={handleBlur}
                 placeholder="Confirm Password"
                 className={`w-full pl-10 pr-10 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent ${errors.confirmPassword ? 'border-red-500' : 'border-slate-400'}`}
               />
