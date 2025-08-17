@@ -175,7 +175,7 @@ export default function CreateListing() {
             <motion.div key="step1" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
               <h2 className="text-xl font-semibold text-slate-600">Describe your place</h2>
               <div>
-                <input type="text" placeholder="Property Name (e.g., Sunny Villa)" id="name" className={`w-full p-3 border rounded-lg ${errors.name ? 'border-red-500' : 'border-gray-300'}`} required onChange={handleChange} value={formData.name} />
+                <input type="text" placeholder="Property Name (e.g., Safe Villa)" id="name" className={`w-full p-3 border rounded-lg ${errors.name ? 'border-red-500' : 'border-gray-300'}`} required onChange={handleChange} value={formData.name} />
                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
               </div>
               <div>
