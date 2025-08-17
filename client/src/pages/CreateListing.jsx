@@ -26,7 +26,6 @@ export default function CreateListing() {
   const [imageUploadError, setImageUploadError] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState({});
-  // --- New state for backend communication ---
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 

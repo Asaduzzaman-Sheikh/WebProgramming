@@ -55,7 +55,8 @@ export default function SignIn() {
       
       if (response.ok) {
         // On success, dispatch the user data to the store
-        dispatch(signInSuccess(result.user));
+        // console.log("SignIn result:", result);
+        dispatch(signInSuccess(result));
         navigate("/");
       } else {
         // On failure, dispatch the error message
@@ -90,14 +91,7 @@ export default function SignIn() {
              </span>
           </div>
 
-          {/* Remember me and Forgot password */}
-          <div className="flex items-center justify-between text-sm">
-             <div className="flex items-center gap-2">
-               <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-               <label htmlFor="rememberMe" className="text-slate-600 select-none cursor-pointer">Remember me</label>
-             </div>
-             <Link to="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">Forgot password?</Link>
-          </div>
+        
 
           {/* --- 5. Use the global `loading` state from Redux --- */}
           <button type="submit" disabled={loading} className={`w-full bg-gradient-to-r from-indigo-600 to-indigo-800 text-white py-2 rounded-lg font-semibold shadow-md transition duration-300 ${ loading ? "opacity-60 cursor-not-allowed" : "hover:opacity-90" }`}>
