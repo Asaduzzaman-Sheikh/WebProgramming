@@ -91,6 +91,14 @@ export default function SignIn() {
              </span>
           </div>
 
+           {/* Remember me */}
+          <div className="flex items-center justify-between text-sm">
+             <div className="flex items-center gap-2">
+               <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+               <label htmlFor="rememberMe" className="text-slate-600 select-none cursor-pointer">Remember me</label>
+             </div>
+          </div>
+
         
 
           {/* --- 5. Use the global `loading` state from Redux --- */}
