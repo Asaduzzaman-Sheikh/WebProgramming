@@ -29,7 +29,6 @@ export default function CreateListing() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-
   const validateStep = () => {
     const newErrors = {};
     if (step === 1) {
@@ -77,8 +76,8 @@ export default function CreateListing() {
       const promises = files.map((file) => {
         const uploadFormData = new FormData();
         uploadFormData.append('file', file);
-        uploadFormData.append('upload_preset', 'omrlo2vb');
-        return fetch('https://api.cloudinary.com/v1_1/dntrypsos/image/upload', {
+        uploadFormData.append('upload_preset', 'omrlo2vb'); // Replace with your preset
+        return fetch('https://api.cloudinary.com/v1_1/dntrypsos/image/upload', { // Replace with your cloud name
           method: 'POST',
           body: uploadFormData,
         })
@@ -194,8 +193,21 @@ export default function CreateListing() {
 
           {step === 2 && (
             <motion.div key="step2" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
-              <h2 className="text-xl font-semibold text-slate-600">Property Details</h2>
-              <div className="flex flex-wrap gap-6">
+              <h2 className="text-xl font-semibold text-slate-600">Property Details & Pricing</h2>
+          
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                  <p className="font-semibold">This property is for:</p>
+                  <div className="flex gap-2">
+                      <input type="radio" id="sale" name="type" className="w-5" onChange={handleChange} checked={formData.type === 'sale'} />
+                      <span>Sell</span>
+                  </div>
+                  <div className="flex gap-2">
+                      <input type="radio" id="rent" name="type" className="w-5" onChange={handleChange} checked={formData.type === 'rent'} />
+                      <span>Rent</span>
+                  </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-6 pt-4 border-t">
                 <div className="flex items-center gap-2">
                   <FaBed className="text-lg" />
                   <input type="number" id="bedrooms" min="1" max="10" required className="p-3 border border-gray-300 rounded-lg w-24" onChange={handleChange} value={formData.bedrooms} />
@@ -207,6 +219,12 @@ export default function CreateListing() {
                   <span>Baths</span>
                 </div>
               </div>
+          
+              <div className="flex gap-2 items-center">
+                <input type="checkbox" id="offer" className="w-5 h-5" onChange={handleChange} checked={formData.offer} />
+                <span>Is this property on offer?</span>
+              </div>
+          
               <div>
                 <div className="flex items-center gap-2">
                   <FaDollarSign className="text-lg" />
@@ -218,10 +236,11 @@ export default function CreateListing() {
                 </div>
                 {errors.regularPrice && <p className="text-red-500 text-xs mt-1">{errors.regularPrice}</p>}
               </div>
+          
               {formData.offer && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   <div className="flex items-center gap-2">
-                    <FaDollarSign className="text-lg" />
+                    <FaDollarSign className="text-lg text-green-600" />
                     <input type="number" id="discountPrice" min="0" required className={`p-3 border rounded-lg ${errors.discountPrice ? 'border-red-500' : 'border-gray-300'}`} onChange={handleChange} value={formData.discountPrice} />
                     <div className="flex flex-col items-center">
                       <p>Discounted Price</p>
@@ -231,6 +250,7 @@ export default function CreateListing() {
                   {errors.discountPrice && <p className="text-red-500 text-xs mt-1">{errors.discountPrice}</p>}
                 </motion.div>
               )}
+              
               <div className="flex gap-4">
                 <button onClick={handleBack} className="w-full bg-gray-200 text-slate-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">Back</button>
                 <button onClick={handleNext} className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Next</button>
@@ -243,24 +263,12 @@ export default function CreateListing() {
               <h2 className="text-xl font-semibold text-slate-600">Features & Amenities</h2>
               <div className="flex flex-wrap gap-4">
                 <div className="flex gap-2">
-                  <input type="checkbox" id="sale" className="w-5" onChange={handleChange} checked={formData.type === 'sale'} />
-                  <span>Sell</span>
-                </div>
-                <div className="flex gap-2">
-                  <input type="checkbox" id="rent" className="w-5" onChange={handleChange} checked={formData.type === 'rent'} />
-                  <span>Rent</span>
-                </div>
-                <div className="flex gap-2">
                   <input type="checkbox" id="parking" className="w-5" onChange={handleChange} checked={formData.parking} />
                   <span>Parking spot</span>
                 </div>
                 <div className="flex gap-2">
                   <input type="checkbox" id="furnished" className="w-5" onChange={handleChange} checked={formData.furnished} />
                   <span>Furnished</span>
-                </div>
-                <div className="flex gap-2">
-                  <input type="checkbox" id="offer" className="w-5" onChange={handleChange} checked={formData.offer} />
-                  <span>Offer</span>
                 </div>
               </div>
               <div className="flex gap-4">
