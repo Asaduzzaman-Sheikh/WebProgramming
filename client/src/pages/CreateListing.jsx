@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaBed, FaBath, FaDollarSign, FaImage } from 'react-icons/fa';
+import { FaBed, FaBath, FaDollarSign } from 'react-icons/fa';
 
 export default function CreateListing() {
   const { currentUser } = useSelector((state) => state.user);
@@ -21,7 +21,7 @@ export default function CreateListing() {
     parking: false,
     furnished: false,
     imageUrls: [],
-    userRef: currentUser._id,
+    userRef: currentUser ? currentUser._id : '',
   });
   const [imageUploadError, setImageUploadError] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -38,7 +38,7 @@ export default function CreateListing() {
     }
     if (step === 2) {
       if (formData.regularPrice <= 0) newErrors.regularPrice = 'Regular price must be greater than 0.';
-      if (formData.offer && +formData.discountPrice >= +formData.regularPrice) {
+      if (formData.type === 'sale' && formData.offer && +formData.discountPrice >= +formData.regularPrice) {
         newErrors.discountPrice = 'Discount price must be less than the regular price.';
       }
     }
@@ -51,7 +51,7 @@ export default function CreateListing() {
       setStep(step + 1);
     }
   };
-  
+
   const handleBack = () => setStep(step - 1);
 
   const handleChange = (e) => {
@@ -60,7 +60,12 @@ export default function CreateListing() {
       setErrors(prev => ({ ...prev, [id]: null }));
     }
     if (id === 'sale' || id === 'rent') {
-      setFormData({ ...formData, type: id });
+      setFormData({
+        ...formData,
+        type: id,
+        offer: false,
+        discountPrice: 0
+      });
     } else if (id === 'parking' || id === 'furnished' || id === 'offer') {
       setFormData({ ...formData, [id]: checked });
     } else {
@@ -76,8 +81,8 @@ export default function CreateListing() {
       const promises = files.map((file) => {
         const uploadFormData = new FormData();
         uploadFormData.append('file', file);
-        uploadFormData.append('upload_preset', 'omrlo2vb'); // Replace with your preset
-        return fetch('https://api.cloudinary.com/v1_1/dntrypsos/image/upload', { // Replace with your cloud name
+        uploadFormData.append('upload_preset', 'omrlo2vb');
+        return fetch('https://api.cloudinary.com/v1_1/dntrypsos/image/upload', {
           method: 'POST',
           body: uploadFormData,
         })
@@ -93,7 +98,7 @@ export default function CreateListing() {
           setImageUploadError(false);
           setUploading(false);
         })
-        .catch((err) => {
+        .catch(() => {
           setImageUploadError('Image upload failed. Please try again.');
           setUploading(false);
         });
@@ -147,17 +152,25 @@ export default function CreateListing() {
     exit: { opacity: 0, x: -50 },
   };
 
+  if (!currentUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-slate-700">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-3xl bg-white p-8 rounded-2xl shadow-xl space-y-8">
         <h1 className="text-3xl font-bold text-center text-slate-700">Create a Property Listing</h1>
+
+        {/* Progress bar */}
         <div className="relative pt-1">
           <div className="flex mb-2 items-center justify-between">
-            <div>
-              <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
-                Step {step} of 4
-              </span>
-            </div>
+            <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
+              Step {step} of 4
+            </span>
           </div>
           <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
             <motion.div
@@ -165,24 +178,31 @@ export default function CreateListing() {
               className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500"
               initial={{ width: 0 }}
               animate={{ width: `${(step / 4) * 100}%` }}
-            ></motion.div>
+            />
           </div>
         </div>
 
         <AnimatePresence mode="wait">
+          {/* Step 1 */}
           {step === 1 && (
             <motion.div key="step1" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
               <h2 className="text-xl font-semibold text-slate-600">Describe your place</h2>
               <div>
-                <input type="text" placeholder="Property Name (e.g., Safe Villa)" id="name" className={`w-full p-3 border rounded-lg ${errors.name ? 'border-red-500' : 'border-gray-300'}`} required onChange={handleChange} value={formData.name} />
+                <input type="text" placeholder="Property Name (e.g., Safe Villa)" id="name"
+                  className={`w-full p-3 border rounded-lg ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                  required onChange={handleChange} value={formData.name} />
                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
               </div>
               <div>
-                <textarea placeholder="Description" id="description" className={`w-full p-3 border rounded-lg h-32 ${errors.description ? 'border-red-500' : 'border-gray-300'}`} required onChange={handleChange} value={formData.description}></textarea>
+                <textarea placeholder="Description" id="description"
+                  className={`w-full p-3 border rounded-lg h-32 ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
+                  required onChange={handleChange} value={formData.description}></textarea>
                 {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
               </div>
               <div>
-                <input type="text" placeholder="Address" id="address" className={`w-full p-3 border rounded-lg ${errors.address ? 'border-red-500' : 'border-gray-300'}`} required onChange={handleChange} value={formData.address} />
+                <input type="text" placeholder="Address" id="address"
+                  className={`w-full p-3 border rounded-lg ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+                  required onChange={handleChange} value={formData.address} />
                 {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
               </div>
               <div className="flex gap-4">
@@ -191,44 +211,52 @@ export default function CreateListing() {
             </motion.div>
           )}
 
+          {/* Step 2 */}
           {step === 2 && (
             <motion.div key="step2" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
               <h2 className="text-xl font-semibold text-slate-600">Property Details & Pricing</h2>
-          
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                  <p className="font-semibold">This property is for:</p>
-                  <div className="flex gap-2">
-                      <input type="radio" id="sale" name="type" className="w-5" onChange={handleChange} checked={formData.type === 'sale'} />
-                      <span>Sell</span>
-                  </div>
-                  <div className="flex gap-2">
-                      <input type="radio" id="rent" name="type" className="w-5" onChange={handleChange} checked={formData.type === 'rent'} />
-                      <span>Rent</span>
-                  </div>
+                <p className="font-semibold">This property is for:</p>
+                <div className="flex gap-2">
+                  <input type="radio" id="sale" name="type" className="w-5" onChange={handleChange} checked={formData.type === 'sale'} />
+                  <span>Sell</span>
+                </div>
+                <div className="flex gap-2">
+                  <input type="radio" id="rent" name="type" className="w-5" onChange={handleChange} checked={formData.type === 'rent'} />
+                  <span>Rent</span>
+                </div>
               </div>
-              
+
               <div className="flex flex-wrap gap-6 pt-4 border-t">
                 <div className="flex items-center gap-2">
                   <FaBed className="text-lg" />
-                  <input type="number" id="bedrooms" min="1" max="10" required className="p-3 border border-gray-300 rounded-lg w-24" onChange={handleChange} value={formData.bedrooms} />
+                  <input type="number" id="bedrooms" min="1" max="10" required
+                    className="p-3 border border-gray-300 rounded-lg w-24"
+                    onChange={handleChange} value={formData.bedrooms} />
                   <span>Beds</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <FaBath className="text-lg" />
-                  <input type="number" id="bathrooms" min="1" max="10" required className="p-3 border border-gray-300 rounded-lg w-24" onChange={handleChange} value={formData.bathrooms} />
+                  <input type="number" id="bathrooms" min="1" max="10" required
+                    className="p-3 border border-gray-300 rounded-lg w-24"
+                    onChange={handleChange} value={formData.bathrooms} />
                   <span>Baths</span>
                 </div>
               </div>
-          
-              <div className="flex gap-2 items-center">
-                <input type="checkbox" id="offer" className="w-5 h-5" onChange={handleChange} checked={formData.offer} />
-                <span>Is this property on offer?</span>
-              </div>
-          
+
+              {formData.type === 'sale' && (
+                <div className="flex gap-2 items-center">
+                  <input type="checkbox" id="offer" className="w-5 h-5" onChange={handleChange} checked={formData.offer} />
+                  <span>Make an offer with a discounted price?</span>
+                </div>
+              )}
+
               <div>
                 <div className="flex items-center gap-2">
                   <FaDollarSign className="text-lg" />
-                  <input type="number" id="regularPrice" min="50" required className={`p-3 border rounded-lg ${errors.regularPrice ? 'border-red-500' : 'border-gray-300'}`} onChange={handleChange} value={formData.regularPrice} />
+                  <input type="number" id="regularPrice" min="50" required
+                    className={`p-3 border rounded-lg ${errors.regularPrice ? 'border-red-500' : 'border-gray-300'}`}
+                    onChange={handleChange} value={formData.regularPrice} />
                   <div className="flex flex-col items-center">
                     <p>Regular Price</p>
                     {formData.type === 'rent' && <span className="text-xs">($ / month)</span>}
@@ -236,21 +264,22 @@ export default function CreateListing() {
                 </div>
                 {errors.regularPrice && <p className="text-red-500 text-xs mt-1">{errors.regularPrice}</p>}
               </div>
-          
-              {formData.offer && (
+
+              {formData.type === 'sale' && formData.offer && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   <div className="flex items-center gap-2">
                     <FaDollarSign className="text-lg text-green-600" />
-                    <input type="number" id="discountPrice" min="0" required className={`p-3 border rounded-lg ${errors.discountPrice ? 'border-red-500' : 'border-gray-300'}`} onChange={handleChange} value={formData.discountPrice} />
+                    <input type="number" id="discountPrice" min="0" required
+                      className={`p-3 border rounded-lg ${errors.discountPrice ? 'border-red-500' : 'border-gray-300'}`}
+                      onChange={handleChange} value={formData.discountPrice} />
                     <div className="flex flex-col items-center">
                       <p>Discounted Price</p>
-                      {formData.type === 'rent' && <span className="text-xs">($ / month)</span>}
                     </div>
                   </div>
                   {errors.discountPrice && <p className="text-red-500 text-xs mt-1">{errors.discountPrice}</p>}
                 </motion.div>
               )}
-              
+
               <div className="flex gap-4">
                 <button onClick={handleBack} className="w-full bg-gray-200 text-slate-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">Back</button>
                 <button onClick={handleNext} className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Next</button>
@@ -258,6 +287,7 @@ export default function CreateListing() {
             </motion.div>
           )}
 
+          {/* Step 3 */}
           {step === 3 && (
             <motion.div key="step3" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
               <h2 className="text-xl font-semibold text-slate-600">Features & Amenities</h2>
@@ -278,6 +308,7 @@ export default function CreateListing() {
             </motion.div>
           )}
 
+          {/* Step 4 */}
           {step === 4 && (
             <motion.div key="step4" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
               <h2 className="text-xl font-semibold text-slate-600">Add Images</h2>
@@ -297,12 +328,12 @@ export default function CreateListing() {
               ))}
               <div className="flex flex-col gap-4">
                 <div className="flex gap-4">
-                    <button onClick={handleBack} className="w-full bg-gray-200 text-slate-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">Back</button>
-                    <button onClick={handleSubmit} disabled={loading || uploading} className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-70">
+                  <button onClick={handleBack} className="w-full bg-gray-200 text-slate-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">Back</button>
+                  <button onClick={handleSubmit} disabled={loading || uploading} className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-70">
                     {loading ? 'Creating...' : 'Create Listing'}
-                    </button>
+                  </button>
                 </div>
-                {error && <p className='text-red-700 text-sm text-center'>{error}</p>}
+                {error && <p className="text-red-700 text-sm text-center">{error}</p>}
               </div>
             </motion.div>
           )}
