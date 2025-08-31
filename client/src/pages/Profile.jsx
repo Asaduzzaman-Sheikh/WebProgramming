@@ -182,6 +182,14 @@ export default function Profile() {
     }
   };
 
+   if (!currentUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-slate-700">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen py-12 px-4">
       <motion.div
