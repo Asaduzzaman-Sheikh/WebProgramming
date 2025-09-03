@@ -16,5 +16,6 @@ router.delete('/delete/:id', verifyToken, deleteUser);
 // Get the listings of a user (requires token verification)
 router.get('/listings/:id', verifyToken, getUserListings);
 
+
 export default router;
 

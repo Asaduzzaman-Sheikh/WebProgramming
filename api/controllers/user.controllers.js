@@ -1,11 +1,11 @@
 import bcryptjs from "bcryptjs";
 import User from "../models/user.model.js";
-import { errorHandler } from '../utils/error.js';
+import { errorHandler } from "../utils/error.js";
 import Listing from "../models/listing.model.js";
 
 export const test = (req, res) => {
   res.status(200).json({
-    message: 'API is working',
+    message: "API is working",
   });
 };
 
@@ -20,7 +20,8 @@ const validatePassword = (password) => {
   if (!/[a-z]/.test(password)) {
     return "Password must contain at least one lowercase letter.";
   }
-  if (!/\d/.test(password)) { // Corrected the regex here
+  if (!/\d/.test(password)) {
+    // Corrected the regex here
     return "Password must contain at least one number.";
   }
   if (!/[@$!%*?&]/.test(password)) {
@@ -31,11 +32,11 @@ const validatePassword = (password) => {
 
 export const updateUser = async (req, res, next) => {
   if (req.user.id !== req.params.id) {
-    return next(errorHandler(401, 'You can only update your own account!'));
+    return next(errorHandler(401, "You can only update your own account!"));
   }
   try {
     const { password } = req.body;
-    
+
     // If a new password is provided, validate and hash it
     if (password) {
       const passwordError = validatePassword(password);
@@ -67,18 +68,18 @@ export const updateUser = async (req, res, next) => {
 
 export const deleteUser = async (req, res, next) => {
   if (req.user.id !== req.params.id) {
-    return next(errorHandler(401, 'You can only delete your own account!'));
+    return next(errorHandler(401, "You can only delete your own account!"));
   }
   try {
     await User.findByIdAndDelete(req.params.id);
     res.clearCookie("access_token");
     res.status(200).json({
-      message: 'User deleted successfully',
+      message: "User deleted successfully",
     });
   } catch (error) {
     next(error);
   }
-}
+};
 
 export const getUserListings = async (req, res, next) => {
   if (req.user.id === req.params.id) {
@@ -89,6 +90,8 @@ export const getUserListings = async (req, res, next) => {
       next(error);
     }
   } else {
-    return next(errorHandler(401, 'Unauthorized'));
-  }   
-}
+    return next(errorHandler(401, "Unauthorized"));
+  }
+};
+
+
