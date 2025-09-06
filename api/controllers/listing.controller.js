@@ -97,13 +97,19 @@ export const getListings = async (req, res, next) => {
     }
 
     const searchTerm = req.query.searchTerm || '';
-
     const sort = req.query.sort || 'createdAt';
+    const order = req.query.order === 'asc' ? 1 : -1;
 
-    const order = req.query.order || 'desc';
-
+    // --- UPDATED QUERY LOGIC ---
     const listings = await Listing.find({
-      name: { $regex: searchTerm, $options: 'i' },
+      // Use $or to search in multiple fields
+      $or: [
+        { name: { $regex: searchTerm, $options: 'i' } },
+        { address: { $regex: searchTerm, $options: 'i' } },
+        // Add other fields you want to search by, e.g., city
+        // { city: { $regex: searchTerm, $options: 'i' } }, 
+      ],
+      // Keep the other filters outside the $or operator
       offer,
       furnished,
       parking,

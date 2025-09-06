@@ -16,6 +16,6 @@ router.put('/edit/:id', verifyToken, editListing);
 router.get('/get/:id', getListing);
 
 // Get all listings
-router.get('/get', getListings);
+router.get('/getListings', getListings);
 
 export default router;
