@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import SwiperCore from 'swiper';
 import { Navigation, Autoplay, EffectFade } from 'swiper/modules';
 import 'swiper/css/bundle';
 import ListingItem from '../components/ListingItem';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+
+// A simple placeholder component to show while the swiper is loading
+const SwiperSkeleton = () => (
+  <div className="max-w-6xl mx-auto my-10 h-[500px] bg-slate-200 rounded-2xl animate-pulse"></div>
+);
 
 const ArrowRightIcon = () => (
   <svg
@@ -26,34 +30,39 @@ const ArrowRightIcon = () => (
 );
 
 export default function Home() {
-  // --- FIX: Corrected the typo from _useState to = useState ---
+  const [loading, setLoading] = useState(true);
+  const [latestOffer, setLatestOffer] = useState(null);
   const [offerListings, setOfferListings] = useState([]);
   const [saleListings, setSaleListings] = useState([]);
   const [rentListings, setRentListings] = useState([]);
-  const [isSwiperVisible, setIsSwiperVisible] = useState(false);
-  SwiperCore.use([Navigation, Autoplay, EffectFade]);
 
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const offerPromise = fetch('/api/listing/getListings?offer=true&limit=4').then(res => res.json());
+        const latestOfferPromise = fetch('/api/listing/getListings?offer=true&limit=1&sort=createdAt&order=desc').then(res => res.json());
+        const offerListingsPromise = fetch('/api/listing/getListings?offer=true&limit=4').then(res => res.json());
         const rentPromise = fetch('/api/listing/getListings?type=rent&limit=4').then(res => res.json());
         const salePromise = fetch('/api/listing/getListings?type=sale&limit=4').then(res => res.json());
 
-        const [offerData, rentData, saleData] = await Promise.all([
-          offerPromise,
+        const [latestOfferData, offerData, rentData, saleData] = await Promise.all([
+          latestOfferPromise,
+          offerListingsPromise,
           rentPromise,
           salePromise,
         ]);
+        
+        if (latestOfferData && latestOfferData.length > 0) {
+          setLatestOffer(latestOfferData[0]);
+        }
 
         setOfferListings(offerData);
         setRentListings(rentData);
         setSaleListings(saleData);
+        setLoading(false);
         
-        setTimeout(() => setIsSwiperVisible(true), 100);
-
       } catch (error) {
         console.log(error);
+        setLoading(false);
       }
     };
     fetchListings();
@@ -81,43 +90,45 @@ export default function Home() {
         </Link>
       </div>
 
-      {/* 2. DYNAMIC SWIPER CAROUSEL WITH NO PADDING */}
-      <div className={`max-w-6xl mx-auto my-10 bg-white rounded-2xl shadow-xl border border-gray-200 transition-all duration-1000 ease-in-out overflow-hidden ${isSwiperVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-        <div className='relative'>
-          <Swiper
-            navigation={{
-              nextEl: '.swiper-button-next-custom',
-              prevEl: '.swiper-button-prev-custom',
-            }}
-            effect="fade"
-            loop={true}
-            autoplay={{
-              delay: 3000,
-              disableOnInteraction: false,
-            }}
-          >
-            {offerListings &&
-              offerListings.length > 0 &&
-              offerListings.map((listing) => (
-                <SwiperSlide key={listing._id}>
-                  <div
-                    style={{
-                      background: `url(${listing.imageUrls[0]}) center no-repeat`,
-                      backgroundSize: 'cover',
-                    }}
-                    className='h-[500px]'
-                  ></div>
-                </SwiperSlide>
-              ))}
-          </Swiper>
-          <div className='swiper-button-prev-custom absolute top-1/2 left-4 z-10 p-2 rounded-full bg-white/70 shadow-md cursor-pointer transition-all hover:bg-white hover:scale-110'>
-            <FaChevronLeft className='text-slate-800 text-lg' />
+      {/* 2. SWIPER SECTION */}
+      {loading ? (
+        <SwiperSkeleton />
+      ) : (
+        latestOffer && (
+          <div className="max-w-6xl mx-auto my-10 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className='relative'>
+              <Swiper
+                modules={[Navigation, Autoplay, EffectFade]}
+                navigation={{
+                  nextEl: '.swiper-button-next-custom',
+                  prevEl: '.swiper-button-prev-custom',
+                }}
+                effect="fade"
+                loop={true}
+                autoplay={{ delay: 3000, disableOnInteraction: false }}
+              >
+                {latestOffer.imageUrls.map((url, index) => (
+                    <SwiperSlide key={index}>
+                      <div
+                        style={{
+                          background: `url(${url}) center no-repeat`,
+                          backgroundSize: 'cover',
+                        }}
+                        className='h-[500px]'
+                      ></div>
+                    </SwiperSlide>
+                  ))}
+              </Swiper>
+              <div className='swiper-button-prev-custom absolute top-1/2 left-4 z-10 p-2 rounded-full bg-white/70 shadow-md cursor-pointer transition-all hover:bg-white hover:scale-110'>
+                <FaChevronLeft className='text-slate-800 text-lg' />
+              </div>
+              <div className='swiper-button-next-custom absolute top-1/2 right-4 z-10 p-2 rounded-full bg-white/70 shadow-md cursor-pointer transition-all hover:bg-white hover:scale-110'>
+                <FaChevronRight className='text-slate-800 text-lg' />
+              </div>
+            </div>
           </div>
-          <div className='swiper-button-next-custom absolute top-1/2 right-4 z-10 p-2 rounded-full bg-white/70 shadow-md cursor-pointer transition-all hover:bg-white hover:scale-110'>
-            <FaChevronRight className='text-slate-800 text-lg' />
-          </div>
-        </div>
-      </div>
+        )
+      )}
 
       {/* 3. LISTING RESULTS SECTIONS */}
       <div className='max-w-6xl mx-auto p-3 flex flex-col gap-12 my-10'>
@@ -142,7 +153,7 @@ export default function Home() {
               <h2 className='text-2xl font-semibold text-slate-700'>Recent Places for Rent</h2>
               <Link className='text-sm text-blue-800 hover:underline' to={'/search?type=rent'}>
                 Show more places for rent
-              </Link>
+              </Link> {/* ✅ FIX: Changed </a> to </Link> */}
             </div>
             <div className='flex flex-wrap gap-4'>
               {rentListings.map((listing) => (
@@ -157,7 +168,7 @@ export default function Home() {
               <h2 className='text-2xl font-semibold text-slate-700'>Recent Places for Sale</h2>
               <Link className='text-sm text-blue-800 hover:underline' to={'/search?type=sale'}>
                 Show more places for sale
-              </Link>
+              </Link> {/* ✅ FIX: Changed </a> to </Link> */}
             </div>
             <div className='flex flex-wrap gap-4'>
               {saleListings.map((listing) => (
