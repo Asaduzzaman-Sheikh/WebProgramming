@@ -12,7 +12,7 @@ router.delete('/delete/:id', verifyToken, deleteListing);
 // Edit a listing
 router.put('/edit/:id', verifyToken, editListing);
 
-// Get a single listing
+// Get a single existing listing information to see so that it can be edited
 router.get('/get/:id', getListing);
 
 export default router;

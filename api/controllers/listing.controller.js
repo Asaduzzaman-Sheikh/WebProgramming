@@ -51,10 +51,9 @@ export const editListing = async (req, res, next) => {
 
 export const getListing = async (req, res, next) => {
   try {
-    // Find the listing by its ID and populate the userRef field
-    const listing = await Listing.findById(req.params.id).populate('userRef');
+    // Find the listing by its ID
+    const listing = await Listing.findById(req.params.id);
 
-   
     // This will log the result of the query to your backend terminal
     // console.log('Listing data after populate:', listing); 
     

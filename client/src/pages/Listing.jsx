@@ -1,37 +1,41 @@
-// Import necessary hooks and components
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import SwiperCore from 'swiper';
+import { useSelector } from 'react-redux';
+import { Navigation, EffectFade } from 'swiper/modules';
+
+// Core Swiper styles for proper functionality
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/effect-fade';
+
 import {
-  FaMapMarkerAlt,
-  FaBed,
   FaBath,
-  FaParking,
+  FaBed,
   FaChair,
+  FaMapMarkerAlt,
+  FaParking,
   FaShare,
-  FaArrowLeft,
-  FaArrowRight,
-} from "react-icons/fa";
-import { motion } from "framer-motion";
+  FaChevronLeft,
+  FaChevronRight,
+} from 'react-icons/fa';
+import Contact from '../components/Contact';
 
 export default function Listing() {
-  const params = useParams();
-  const navigate = useNavigate();
-  const { currentUser } = useSelector((state) => state.user);
-
+  SwiperCore.use([Navigation, EffectFade]);
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [contact, setContact] = useState(false);
-  const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [contact, setContact] = useState(false);
+  const params = useParams();
+  const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
     const fetchListing = async () => {
       try {
         setLoading(true);
-        setError(false);
         const res = await fetch(`/api/listing/get/${params.listingId}`);
         const data = await res.json();
         if (data.success === false) {
@@ -41,6 +45,7 @@ export default function Listing() {
         }
         setListing(data);
         setLoading(false);
+        setError(false);
       } catch (error) {
         setError(true);
         setLoading(false);
@@ -49,178 +54,127 @@ export default function Listing() {
     fetchListing();
   }, [params.listingId]);
 
-  const onChange = (e) => {
-    setMessage(e.target.value);
-  };
-
-  const nextImage = () => {
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === listing.imageUrls.length - 1 ? 0 : prevIndex + 1
-    );
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === 0 ? listing.imageUrls.length - 1 : prevIndex - 1
-    );
-  };
-
   return (
-    <main className=" min-h-screen">
-      {loading && <p className="text-center my-7 text-2xl">Loading...</p>}
+    <main>
+      {loading && <p className='text-center my-7 text-2xl'>Loading...</p>}
       {error && (
-        <div className="text-center my-7 text-2xl">
-          <p>Something went wrong!</p>
-          <button
-            onClick={() => navigate("/")}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg"
-          >
-            Go Home
-          </button>
-        </div>
+        <p className='text-center my-7 text-2xl'>Something went wrong!</p>
       )}
-
       {listing && !loading && !error && (
-        <div className="max-w-6xl mx-auto p-4 md:p-8">
-          {/* Image Slider Section */}
-          <div className="relative w-full h-[300px] md:h-[550px] overflow-hidden rounded-2xl shadow-lg mb-6">
-            <motion.img
-              key={currentImageIndex}
-              src={listing.imageUrls[currentImageIndex]}
-              alt="listing image"
-              className="w-full h-full object-cover"
-              initial={{ opacity: 0.5, scale: 1.05 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-            />
-            {listing.imageUrls.length > 1 && (
-              <>
-                <button
-                  onClick={prevImage}
-                  className="absolute top-1/2 left-3 transform -translate-y-1/2 bg-white/70 p-3 rounded-full shadow-md hover:bg-white transition"
-                >
-                  <FaArrowLeft className="text-slate-700" />
-                </button>
-                <button
-                  onClick={nextImage}
-                  className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-white/70 p-3 rounded-full shadow-md hover:bg-white transition"
-                >
-                  <FaArrowRight className="text-slate-700" />
-                </button>
-              </>
-            )}
-            <div className="absolute top-3 right-3 z-10 border rounded-full w-12 h-12 flex justify-center items-center bg-slate-100 cursor-pointer">
-              <FaShare
-                className="text-slate-500"
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  setCopied(true);
-                  setTimeout(() => {
-                    setCopied(false);
-                  }, 2000);
-                }}
-              />
-            </div>
-            {copied && (
-              <p className="fixed top-[13%] right-[5%] z-10 rounded-md bg-slate-100 p-2">
-                Link copied!
-              </p>
-            )}
-          </div>
+        <div className='max-w-6xl mx-auto'>
+          <Swiper
+            modules={[EffectFade, Navigation]}
+            effect='fade'
+            navigation={{
+              nextEl: '.swiper-button-next-custom',
+              prevEl: '.swiper-button-prev-custom',
+            }}
+            className='h-[550px] rounded-lg shadow-lg relative'
+            loop={true}
+          >
+            {listing.imageUrls.map((url, index) => (
+              <SwiperSlide key={`${url}-${index}`}>
+                <img
+                  src={url}
+                  alt={`Listing image ${index + 1}`}
+                  className='w-full h-full object-cover'
+                />
+              </SwiperSlide>
+            ))}
 
-          {/* Listing Details Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
-              {listing.name} - ${" "}
+            {/* Custom Navigation Buttons */}
+            <div className='absolute top-1/2 left-4 z-10 -translate-y-1/2'>
+              <div className='swiper-button-prev-custom bg-white/70 rounded-full w-10 h-10 flex justify-center items-center text-slate-800 transition-all duration-300 hover:bg-white hover:scale-110 cursor-pointer shadow-md'>
+                <FaChevronLeft className='text-lg' />
+              </div>
+            </div>
+            <div className='absolute top-1/2 right-4 z-10 -translate-y-1/2'>
+              <div className='swiper-button-next-custom bg-white/70 rounded-full w-10 h-10 flex justify-center items-center text-slate-800 transition-all duration-300 hover:bg-white hover:scale-110 cursor-pointer shadow-md'>
+                <FaChevronRight className='text-lg' />
+              </div>
+            </div>
+          </Swiper>
+        
+          {/* Floating Share Button */}
+          <div className='fixed top-[13%] right-[3%] z-10 border rounded-full w-12 h-12 flex justify-center items-center bg-slate-100 cursor-pointer'>
+            <FaShare
+              className='text-slate-500'
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                setCopied(true);
+                setTimeout(() => {
+                  setCopied(false);
+                }, 2000);
+              }}
+            />
+          </div>
+          {copied && (
+            <p className='fixed top-[23%] right-[5%] z-10 rounded-md bg-slate-100 p-2'>
+              Link copied!
+            </p>
+          )}
+
+          {/* Styled content container with updated width */}
+          <div className='flex flex-col max-w-6xl mx-auto my-7 gap-4 bg-white shadow-md rounded-lg p-6 border border-gray-200'>
+            <p className='text-2xl font-semibold text-slate-800'>
+              {listing.name} - ${' '}
               {listing.offer
-                ? listing.discountPrice.toLocaleString("en-US")
-                : listing.regularPrice.toLocaleString("en-US")}
-              {listing.type === "rent" && " / month"}
-            </h1>
-            <p className="flex items-center mt-4 gap-2 text-slate-600 text-sm mb-4">
-              <FaMapMarkerAlt className="text-green-700" />
+                ? listing.discountPrice.toLocaleString('en-US')
+                : listing.regularPrice.toLocaleString('en-US')}
+              {listing.type === 'rent' && <span className='text-lg font-normal'> / month</span>}
+            </p>
+            <p className='flex items-center gap-2 text-slate-600 text-sm'>
+              <FaMapMarkerAlt className='text-green-700' />
               {listing.address}
             </p>
-            <div className="flex gap-4 mb-6">
-              <p className="bg-red-900 w-full max-w-[200px] text-white text-center p-1 rounded-md">
-                {listing.type === "rent" ? "For Rent" : "For Sale"}
+            <div className='flex flex-wrap gap-4 items-center'>
+              <p className='bg-red-800 text-white text-center p-1 px-3 rounded-md text-sm font-semibold'>
+                {listing.type === 'rent' ? 'For Rent' : 'For Sale'}
               </p>
               {listing.offer && (
-                <p className="bg-green-900 w-full max-w-[200px] text-white text-center p-1 rounded-md">
+                <p className='bg-green-800 text-white text-center p-1 px-3 rounded-md text-sm font-semibold'>
                   ${+listing.regularPrice - +listing.discountPrice} OFF
                 </p>
               )}
             </div>
-
-            <p className="text-slate-800 mb-6">
-              <span className="font-semibold text-black">Description - </span>
+            <div className='border-t border-gray-200 mt-2'></div>
+            <p className='text-slate-700 pt-2 leading-relaxed'>
+              <span className='font-semibold text-slate-800'>Description - </span>
               {listing.description}
             </p>
-
-            {/* Amenities Section */}
-            <ul className="text-green-900 font-semibold text-sm flex flex-wrap items-center gap-4 sm:gap-6 mb-6">
-              <li className="flex items-center gap-1 whitespace-nowrap">
-                <FaBed className="text-lg" />
+            
+            <ul className='text-green-900 font-semibold text-sm flex flex-wrap items-center gap-4 sm:gap-6 pt-2'>
+              <li className='flex items-center gap-1 whitespace-nowrap'>
+                <FaBed className='text-lg' />
                 {listing.bedrooms > 1
                   ? `${listing.bedrooms} beds `
                   : `${listing.bedrooms} bed `}
               </li>
-              <li className="flex items-center gap-1 whitespace-nowrap">
-                <FaBath className="text-lg" />
+              <li className='flex items-center gap-1 whitespace-nowrap'>
+                <FaBath className='text-lg' />
                 {listing.bathrooms > 1
                   ? `${listing.bathrooms} baths `
                   : `${listing.bathrooms} bath `}
               </li>
-              <li className="flex items-center gap-1 whitespace-nowrap">
-                <FaParking className="text-lg" />
-                {listing.parking ? "Parking spot" : "No Parking"}
+              <li className='flex items-center gap-1 whitespace-nowrap'>
+                <FaParking className='text-lg' />
+                {listing.parking ? 'Parking spot' : 'No Parking'}
               </li>
-              <li className="flex items-center gap-1 whitespace-nowrap">
-                <FaChair className="text-lg" />
-                {listing.furnished ? "Furnished" : "Unfurnished"}
+              <li className='flex items-center gap-1 whitespace-nowrap'>
+                <FaChair className='text-lg' />
+                {listing.furnished ? 'Furnished' : 'Unfurnished'}
               </li>
             </ul>
 
-            {/* Contact Landlord Section */}
-            {currentUser &&
-              listing.userRef._id !== currentUser._id &&
-              !contact && (
-                <button
-                  onClick={() => setContact(true)}
-                  className="bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 p-3 w-full"
-                >
-                  Contact {listing.userRef.username}
-                </button>
-              )}
-            {contact && (
-              <div className="flex flex-col gap-4 mt-6">
-                <p>
-                  Contact{" "}
-                  <span className="font-semibold">
-                    {listing.userRef.username}
-                  </span>{" "}
-                  for{" "}
-                  <span className="font-semibold">
-                    {listing.name.toLowerCase()}
-                  </span>
-                </p>
-                <textarea
-                  name="message"
-                  id="message"
-                  rows="2"
-                  value={message}
-                  onChange={onChange}
-                  placeholder="Enter your message here..."
-                  className="w-full border p-3 rounded-lg"
-                ></textarea>
-                <a
-                  href={`mailto:${listing.userRef.email}?subject=Regarding ${listing.name}&body=${message}`}
-                  className="bg-slate-700 text-white text-center p-3 uppercase rounded-lg hover:opacity-95"
-                >
-                  Send Message
-                </a>
-              </div>
+            {currentUser && listing.userRef !== currentUser._id && !contact && (
+              <button
+                onClick={() => setContact(true)}
+                className='bg-slate-700 text-white rounded-lg uppercase hover:bg-slate-800 transition-colors p-3 mt-4'
+              >
+                Contact landlord
+              </button>
             )}
+            {contact && <Contact listing={listing} />}
           </div>
         </div>
       )}

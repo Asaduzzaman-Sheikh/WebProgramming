@@ -7,9 +7,11 @@ import SignUp from "./pages/SignUp";
 import About from "./pages/About";
 import Profile from "./pages/Profile";
 import CreateListing from "./pages/CreateListing";
-import UpdateListing from "./pages/UpdateListing";
 import PrivateRoute from "./components/PrivateRoute";
+import UpdateListing from "./pages/UpdateListing";
 import Listing from "./pages/Listing";
+
+
 
 export default function App() {
   return (

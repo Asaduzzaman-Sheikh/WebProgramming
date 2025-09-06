@@ -1,5 +1,5 @@
 import express from 'express';
-import { test, updateUser, deleteUser, getUserListings } from '../controllers/user.controllers.js';
+import { test, updateUser, deleteUser, getUserListings, getUser } from '../controllers/user.controllers.js';
 import { verifyToken } from '../utils/verifyUser.js';
 
 const router = express.Router();
@@ -15,6 +15,9 @@ router.delete('/delete/:id', verifyToken, deleteUser);
 
 // Get the listings of a user (requires token verification)
 router.get('/listings/:id', verifyToken, getUserListings);
+
+// Show listings created by a specific user
+router.get('/:id', verifyToken, getUser);
 
 
 export default router;
