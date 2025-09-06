@@ -1,5 +1,5 @@
 import express from 'express';
-import { createListing, deleteListing, editListing, getListing } from '../controllers/listing.controller.js';
+import { createListing, deleteListing, editListing, getListing, getListings } from '../controllers/listing.controller.js';
 import {verifyToken} from '../utils/verifyUser.js';
 
 const router = express.Router();
@@ -14,5 +14,8 @@ router.put('/edit/:id', verifyToken, editListing);
 
 // Get a single existing listing information to see so that it can be edited
 router.get('/get/:id', getListing);
+
+// Get all listings
+router.get('/get', getListings);
 
 export default router;
