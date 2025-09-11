@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaBed, FaBath, FaDollarSign } from 'react-icons/fa';
+import { FaBed, FaBath, FaDollarSign, FaPhone } from 'react-icons/fa';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 export default function CreateListing() {
   const { currentUser } = useSelector((state) => state.user);
@@ -12,6 +14,7 @@ export default function CreateListing() {
     name: '',
     description: '',
     address: '',
+    phoneNumber: '',
     type: 'rent',
     bedrooms: 1,
     bathrooms: 1,
@@ -35,6 +38,12 @@ export default function CreateListing() {
       if (!formData.name.trim()) newErrors.name = 'Property name is required.';
       if (!formData.description.trim()) newErrors.description = 'Description is required.';
       if (!formData.address.trim()) newErrors.address = 'Address is required.';
+
+      if (!formData.phoneNumber) {
+        newErrors.phoneNumber = 'Phone number is required.';
+      } else if (!isValidPhoneNumber(formData.phoneNumber)) {
+        newErrors.phoneNumber = 'Please enter a valid phone number.';
+      }
     }
     if (step === 2) {
       if (formData.regularPrice <= 0) newErrors.regularPrice = 'Regular price must be greater than 0.';
@@ -164,8 +173,6 @@ export default function CreateListing() {
     <main className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-3xl bg-white p-8 rounded-2xl shadow-xl space-y-8">
         <h1 className="text-3xl font-bold text-center text-slate-700">Create a Property Listing</h1>
-
-        {/* Progress bar */}
         <div className="relative pt-1">
           <div className="flex mb-2 items-center justify-between">
             <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
@@ -205,6 +212,25 @@ export default function CreateListing() {
                   required onChange={handleChange} value={formData.address} />
                 {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
               </div>
+
+              <div>
+                <PhoneInput
+                  international // This prop enables immediate international formatting
+                  id="phoneNumber"
+                  placeholder="Enter phone number"
+                  className={`p-3 border rounded-lg custom-phone-input ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'}`}
+                  defaultCountry="BD"
+                  value={formData.phoneNumber}
+                  onChange={(value) => {
+                    if (errors.phoneNumber) {
+                        setErrors(prev => ({ ...prev, phoneNumber: null }));
+                    }
+                    setFormData({ ...formData, phoneNumber: value || '' })
+                  }}
+                />
+                {errors.phoneNumber && <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>}
+              </div>
+
               <div className="flex gap-4">
                 <button onClick={handleNext} className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Next</button>
               </div>
@@ -213,78 +239,78 @@ export default function CreateListing() {
 
           {/* Step 2 */}
           {step === 2 && (
-            <motion.div key="step2" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
-              <h2 className="text-xl font-semibold text-slate-600">Property Details & Pricing</h2>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                <p className="font-semibold">This property is for:</p>
-                <div className="flex gap-2">
-                  <input type="radio" id="sale" name="type" className="w-5" onChange={handleChange} checked={formData.type === 'sale'} />
-                  <span>Sell</span>
-                </div>
-                <div className="flex gap-2">
-                  <input type="radio" id="rent" name="type" className="w-5" onChange={handleChange} checked={formData.type === 'rent'} />
-                  <span>Rent</span>
-                </div>
-              </div>
+             <motion.div key="step2" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+               <h2 className="text-xl font-semibold text-slate-600">Property Details & Pricing</h2>
+               <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                 <p className="font-semibold">This property is for:</p>
+                 <div className="flex gap-2">
+                   <input type="radio" id="sale" name="type" className="w-5" onChange={handleChange} checked={formData.type === 'sale'} />
+                   <span>Sell</span>
+                 </div>
+                 <div className="flex gap-2">
+                   <input type="radio" id="rent" name="type" className="w-5" onChange={handleChange} checked={formData.type === 'rent'} />
+                   <span>Rent</span>
+                 </div>
+               </div>
 
-              <div className="flex flex-wrap gap-6 pt-4 border-t">
-                <div className="flex items-center gap-2">
-                  <FaBed className="text-lg" />
-                  <input type="number" id="bedrooms" min="1" max="10" required
-                    className="p-3 border border-gray-300 rounded-lg w-24"
-                    onChange={handleChange} value={formData.bedrooms} />
-                  <span>Beds</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaBath className="text-lg" />
-                  <input type="number" id="bathrooms" min="1" max="10" required
-                    className="p-3 border border-gray-300 rounded-lg w-24"
-                    onChange={handleChange} value={formData.bathrooms} />
-                  <span>Baths</span>
-                </div>
-              </div>
+               <div className="flex flex-wrap gap-6 pt-4 border-t">
+                 <div className="flex items-center gap-2">
+                   <FaBed className="text-lg" />
+                   <input type="number" id="bedrooms" min="1" max="10" required
+                     className="p-3 border border-gray-300 rounded-lg w-24"
+                     onChange={handleChange} value={formData.bedrooms} />
+                   <span>Beds</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <FaBath className="text-lg" />
+                   <input type="number" id="bathrooms" min="1" max="10" required
+                     className="p-3 border border-gray-300 rounded-lg w-24"
+                     onChange={handleChange} value={formData.bathrooms} />
+                   <span>Baths</span>
+                 </div>
+               </div>
 
-              {formData.type === 'sale' && (
-                <div className="flex gap-2 items-center">
-                  <input type="checkbox" id="offer" className="w-5 h-5" onChange={handleChange} checked={formData.offer} />
-                  <span>Make an offer with a discounted price?</span>
-                </div>
-              )}
+               {formData.type === 'sale' && (
+                 <div className="flex gap-2 items-center">
+                   <input type="checkbox" id="offer" className="w-5 h-5" onChange={handleChange} checked={formData.offer} />
+                   <span>Make an offer with a discounted price?</span>
+                 </div>
+               )}
 
-              <div>
-                <div className="flex items-center gap-2">
-                  <FaDollarSign className="text-lg" />
-                  <input type="number" id="regularPrice" min="50" required
-                    className={`p-3 border rounded-lg ${errors.regularPrice ? 'border-red-500' : 'border-gray-300'}`}
-                    onChange={handleChange} value={formData.regularPrice} />
-                  <div className="flex flex-col items-center">
-                    <p>Regular Price</p>
-                    {formData.type === 'rent' && <span className="text-xs">($ / month)</span>}
-                  </div>
-                </div>
-                {errors.regularPrice && <p className="text-red-500 text-xs mt-1">{errors.regularPrice}</p>}
-              </div>
+               <div>
+                 <div className="flex items-center gap-2">
+                   <FaDollarSign className="text-lg" />
+                   <input type="number" id="regularPrice" min="50" required
+                     className={`p-3 border rounded-lg ${errors.regularPrice ? 'border-red-500' : 'border-gray-300'}`}
+                     onChange={handleChange} value={formData.regularPrice} />
+                   <div className="flex flex-col items-center">
+                     <p>Regular Price</p>
+                     {formData.type === 'rent' && <span className="text-xs">($ / month)</span>}
+                   </div>
+                 </div>
+                 {errors.regularPrice && <p className="text-red-500 text-xs mt-1">{errors.regularPrice}</p>}
+               </div>
 
-              {formData.type === 'sale' && formData.offer && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <div className="flex items-center gap-2">
-                    <FaDollarSign className="text-lg text-green-600" />
-                    <input type="number" id="discountPrice" min="0" required
-                      className={`p-3 border rounded-lg ${errors.discountPrice ? 'border-red-500' : 'border-gray-300'}`}
-                      onChange={handleChange} value={formData.discountPrice} />
-                    <div className="flex flex-col items-center">
-                      <p>Discounted Price</p>
-                    </div>
-                  </div>
-                  {errors.discountPrice && <p className="text-red-500 text-xs mt-1">{errors.discountPrice}</p>}
-                </motion.div>
-              )}
+               {formData.type === 'sale' && formData.offer && (
+                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                   <div className="flex items-center gap-2">
+                     <FaDollarSign className="text-lg text-green-600" />
+                     <input type="number" id="discountPrice" min="0" required
+                       className={`p-3 border rounded-lg ${errors.discountPrice ? 'border-red-500' : 'border-gray-300'}`}
+                       onChange={handleChange} value={formData.discountPrice} />
+                     <div className="flex flex-col items-center">
+                       <p>Discounted Price</p>
+                     </div>
+                   </div>
+                   {errors.discountPrice && <p className="text-red-500 text-xs mt-1">{errors.discountPrice}</p>}
+                 </motion.div>
+               )}
 
-              <div className="flex gap-4">
-                <button onClick={handleBack} className="w-full bg-gray-200 text-slate-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">Back</button>
-                <button onClick={handleNext} className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Next</button>
-              </div>
-            </motion.div>
+               <div className="flex gap-4">
+                 <button onClick={handleBack} className="w-full bg-gray-200 text-slate-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">Back</button>
+                 <button onClick={handleNext} className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Next</button>
+               </div>
+             </motion.div>
           )}
 
           {/* Step 3 */}
