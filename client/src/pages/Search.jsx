@@ -18,10 +18,9 @@ export default function Search() {
   const [listings, setListings] = useState([]);
   const [showMore, setShowMore] = useState(false);
 
-  // This master useEffect fetches data WHENEVER the URL changes.
-  // It also syncs the sidebar form with the URL's parameters.
+  // HOOK #1: Sync UI from URL. Runs only ONCE on initial page load.
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
+    const urlParams = new URLSearchParams(window.location.search);
     const searchTermFromUrl = urlParams.get('searchTerm');
     const typeFromUrl = urlParams.get('type');
     const parkingFromUrl = urlParams.get('parking');
@@ -49,10 +48,14 @@ export default function Search() {
         order: orderFromUrl || 'desc',
       });
     }
+  }, []); // Empty array ensures this runs only once on mount
 
+  // HOOK #2: Fetch Data. Runs whenever the URL changes.
+  useEffect(() => {
     const fetchListings = async () => {
       setLoading(true);
       setShowMore(false);
+      const urlParams = new URLSearchParams(location.search);
       const searchQuery = urlParams.toString();
       const res = await fetch(`/api/listing/getListings?${searchQuery}`);
       const data = await res.json();
@@ -66,10 +69,9 @@ export default function Search() {
     };
 
     fetchListings();
-  }, [location.search]);
+  }, [location.search]); // This now ONLY fetches data
 
-  // This useEffect updates the URL when the user changes any filter.
-  // It uses a debounce timer to avoid making too many requests.
+  // HOOK #3: Update URL from UI (with Debounce). Runs when sidebarData changes.
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       const urlParams = new URLSearchParams();
@@ -82,11 +84,10 @@ export default function Search() {
       urlParams.set('order', sidebarData.order);
       const searchQuery = urlParams.toString();
       navigate(`/search?${searchQuery}`, { replace: true });
-    }, 500); // 500ms delay after user stops typing/clicking
+    }, 500); // 500ms delay
 
     return () => clearTimeout(debounceTimer);
   }, [sidebarData, navigate]);
-
 
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;

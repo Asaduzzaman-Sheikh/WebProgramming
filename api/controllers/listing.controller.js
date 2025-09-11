@@ -100,21 +100,28 @@ export const getListings = async (req, res, next) => {
     const sort = req.query.sort || 'createdAt';
     const order = req.query.order === 'asc' ? 1 : -1;
 
-    // --- UPDATED QUERY LOGIC ---
-    const listings = await Listing.find({
-      // Use $or to search in multiple fields
-      $or: [
-        { name: { $regex: searchTerm, $options: 'i' } },
-        { address: { $regex: searchTerm, $options: 'i' } },
-        // Add other fields you want to search by, e.g., city
-        // { city: { $regex: searchTerm, $options: 'i' } }, 
-      ],
-      // Keep the other filters outside the $or operator
+    // --- UPDATED QUERY LOGIC FOR ABSOLUTE SEARCH ---
+    const baseQuery = {
       offer,
       furnished,
       parking,
       type,
-    })
+    };
+    
+    // Conditionally add search term to avoid issues with empty searches
+    const query = searchTerm
+      ? {
+          ...baseQuery,
+          $or: [
+            // Use regex with start (^) and end ($) anchors for an absolute, case-insensitive match
+            { name: { $regex: `^${searchTerm}$`, $options: 'i' } },
+            { address: { $regex: `^${searchTerm}$`, $options: 'i' } },
+          ],
+        }
+      : baseQuery;
+
+
+    const listings = await Listing.find(query)
       .sort({ [sort]: order })
       .limit(limit)
       .skip(startIndex);
